@@ -1,0 +1,24 @@
+/* ========================================
+   CSS IMPORTS & INITIALIZATION
+   ======================================== */
+
+/* Core Styles */
+@import './global.css';
+@import './responsive.css';
+
+/* Component Styles */
+@import './forms.css';
+@import './buttons.css';
+@import './cards.css';
+@import './tables.css';
+@import './modals.css';
+
+/* Layout & Navigation */
+@import './navigation.css';
+@import './dashboard.css';
+
+/* Effects */
+@import './animations.css';
+
+/* Utilities */
+@import './utilities.css';

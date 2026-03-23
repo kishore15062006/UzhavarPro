@@ -1,0 +1,356 @@
+/* ========================================
+   TABLES
+   ======================================== */
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: white;
+  margin-bottom: 1.5rem;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: white;
+  margin-bottom: 1.5rem;
+}
+
+.table thead {
+  background-color: var(--gray-50);
+  border-bottom: 2px solid var(--gray-200);
+}
+
+.table thead th {
+  padding: 1rem;
+  text-align: left;
+  font-weight: 600;
+  color: var(--gray-700);
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 2px solid var(--gray-200);
+}
+
+.table tbody tr {
+  border-bottom: 1px solid var(--gray-100);
+  transition: background-color var(--transition-fast);
+}
+
+.table tbody tr:hover {
+  background-color: var(--gray-50);
+}
+
+.table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.table tbody td {
+  padding: 1rem;
+  color: var(--gray-700);
+  font-size: 0.95rem;
+  vertical-align: middle;
+}
+
+/* Table Striped */
+.table-striped tbody tr:nth-child(odd) {
+  background-color: var(--gray-50);
+}
+
+.table-striped tbody tr:nth-child(odd):hover {
+  background-color: var(--gray-100);
+}
+
+/* Table Bordered */
+.table-bordered {
+  border: 1px solid var(--gray-200);
+}
+
+.table-bordered thead th {
+  border: 1px solid var(--gray-200);
+}
+
+.table-bordered tbody td {
+  border: 1px solid var(--gray-200);
+}
+
+/* Table Condensed */
+.table-sm thead th {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.8125rem;
+}
+
+.table-sm tbody td {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+}
+
+/* Table Large */
+.table-lg thead th {
+  padding: 1.25rem;
+  font-size: 0.9375rem;
+}
+
+.table-lg tbody td {
+  padding: 1.25rem;
+  font-size: 1rem;
+}
+
+/* Table Hoverable */
+.table-hover tbody tr {
+  cursor: pointer;
+}
+
+.table-hover tbody tr:hover {
+  background-color: var(--gray-100);
+  box-shadow: inset 3px 0 0 var(--primary-500);
+}
+
+/* Table Colors */
+.table-dark {
+  background-color: var(--gray-800);
+  color: white;
+}
+
+.table-dark thead {
+  background-color: var(--gray-900);
+}
+
+.table-dark thead th {
+  color: white;
+  border-color: var(--gray-700);
+}
+
+.table-dark tbody tr {
+  border-color: var(--gray-700);
+  color: var(--gray-100);
+}
+
+.table-dark tbody tr:hover {
+  background-color: var(--gray-700);
+}
+
+/* Table Row Status */
+.table tbody tr.row-success {
+  background-color: #dcfce7;
+}
+
+.table tbody tr.row-warning {
+  background-color: #fef3c7;
+}
+
+.table tbody tr.row-danger {
+  background-color: #fee2e2;
+}
+
+.table tbody tr.row-info {
+  background-color: #dbeafe;
+}
+
+/* Table Column Alignment */
+.table th.text-center,
+.table td.text-center {
+  text-align: center;
+}
+
+.table th.text-right,
+.table td.text-right {
+  text-align: right;
+}
+
+.table th.text-left,
+.table td.text-left {
+  text-align: left;
+}
+
+/* Table Responsive */
+.table-responsive {
+  overflow-x: auto;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-lg);
+}
+
+.table-responsive table {
+  margin-bottom: 0;
+}
+
+@media (max-width: 768px) {
+  .table {
+    font-size: 0.875rem;
+  }
+
+  .table thead th {
+    padding: 0.75rem 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  .table tbody td {
+    padding: 0.75rem 0.5rem;
+  }
+
+  /* Stack Table on Mobile */
+  .table-stack {
+    display: block;
+    margin-bottom: 1.5rem;
+  }
+
+  .table-stack thead {
+    display: none;
+  }
+
+  .table-stack tbody,
+  .table-stack tr,
+  .table-stack td {
+    display: block;
+    width: 100%;
+  }
+
+  .table-stack tr {
+    margin-bottom: 1rem;
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-md);
+    background-color: white;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .table-stack td {
+    text-align: right;
+    padding: 0.75rem;
+    border: none;
+    position: relative;
+    padding-left: 50%;
+  }
+
+  .table-stack td::before {
+    content: attr(data-label);
+    position: absolute;
+    left: 0;
+    width: 50%;
+    padding: 0.75rem;
+    font-weight: 600;
+    text-align: left;
+    color: var(--gray-700);
+    background-color: var(--gray-50);
+    border-right: 1px solid var(--gray-200);
+  }
+}
+
+/* Sortable Table */
+.table-sortable thead th {
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+  padding-right: 2rem;
+}
+
+.table-sortable thead th:hover {
+  background-color: var(--gray-100);
+}
+
+.table-sortable thead th::after {
+  content: '';
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background-color: var(--gray-400);
+}
+
+.table-sortable thead th.sort-asc::after {
+  content: '';
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-bottom: 5px solid var(--primary-500);
+  border-radius: 0;
+  width: auto;
+  height: auto;
+}
+
+.table-sortable thead th.sort-desc::after {
+  content: '';
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 5px solid var(--primary-500);
+  border-radius: 0;
+  width: auto;
+  height: auto;
+}
+
+/* Sticky Header */
+.table-sticky-header {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.table-sticky-header thead th {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+/* Table with checkboxes */
+.table-selectable tbody tr {
+  cursor: pointer;
+}
+
+.table-selectable tbody tr.selected {
+  background-color: var(--primary-100);
+}
+
+.table-selectable thead th:first-child,
+.table-selectable tbody td:first-child {
+  width: 50px;
+  text-align: center;
+}
+
+.table-selectable input[type='checkbox'] {
+  cursor: pointer;
+}
+
+/* Table Loading State */
+.table-loading {
+  opacity: 0.6;
+  pointer-events: none;
+  position: relative;
+}
+
+.table-loading::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255, 255, 255, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-lg);
+  z-index: 10;
+}
+
+/* Empty State */
+.table-empty {
+  text-align: center;
+  padding: 2rem;
+  color: var(--gray-500);
+}
+
+.table-empty-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.table-empty-text {
+  font-size: 1.125rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.table-empty-subtext {
+  font-size: 0.875rem;
+  color: var(--gray-400);
+}
