@@ -33,7 +33,7 @@ public class DeliveryServiceImpl implements DeliveryService {
         order.setDeliveryAgent(agent);
         order.setStatus(OrderStatus.ASSIGNED);
         orderRepository.save(order);
-        return mapper.map(order, OrderDTO.class);
+        return mapToOrderDTO(order);
     }
 
     @Override
@@ -42,6 +42,50 @@ public class DeliveryServiceImpl implements DeliveryService {
         OrderEntity order = orderRepository.findById(orderId).orElseThrow(() -> new ResourceNotFoundException("Order not found"));
         try { order.setStatus(OrderStatus.valueOf(status)); } catch (Exception e) { throw new IllegalArgumentException("Invalid status"); }
         orderRepository.save(order);
-        return mapper.map(order, OrderDTO.class);
+        return mapToOrderDTO(order);
+    }
+
+    @Override
+    @Transactional
+    public OrderDTO pickOrder(Long orderId, Long userId) {
+        OrderEntity order = orderRepository.findById(orderId).orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+        
+        if (order.getDeliveryAgent() != null) {
+            throw new IllegalArgumentException("Order already assigned to another agent");
+        }
+        
+        DeliveryAgent agent = agentRepository.findByUserId(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Delivery agent not found"));
+                
+        order.setDeliveryAgent(agent);
+        order.setStatus(OrderStatus.ASSIGNED);
+        OrderEntity saved = orderRepository.save(order);
+        return mapToOrderDTO(saved);
+    }
+
+    private OrderDTO mapToOrderDTO(OrderEntity order) {
+        OrderDTO dto = new OrderDTO();
+        dto.setId(order.getId());
+        dto.setBuyerId(order.getBuyer() != null ? order.getBuyer().getId() : null);
+        dto.setUserId(order.getBuyer() != null ? order.getBuyer().getId() : null);
+        dto.setFarmerId(order.getFarmer() != null ? order.getFarmer().getId() : null);
+        dto.setAgentId(order.getDeliveryAgent() != null ? order.getDeliveryAgent().getId() : null);
+        dto.setTotalPrice(order.getTotalPrice());
+        dto.setTotalAmount(order.getTotalPrice());
+        dto.setStatus(order.getStatus());
+        dto.setOrderStatus(order.getStatus());
+        dto.setCreatedAt(order.getCreatedAt());
+        
+        if (order.getFarmer() != null) {
+            dto.setFarmLat(order.getFarmer().getFarmLat());
+            dto.setFarmLng(order.getFarmer().getFarmLng());
+            dto.setFarmAddress(order.getFarmer().getFarmAddress());
+        }
+        
+        dto.setDeliveryLat(order.getDeliveryLat());
+        dto.setDeliveryLng(order.getDeliveryLng());
+        dto.setDeliveryAddress(order.getDeliveryAddress());
+        
+        return dto;
     }
 }

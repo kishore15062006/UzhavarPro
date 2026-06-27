@@ -1,5 +1,6 @@
 package com.example.backend.service;
 
+import com.example.backend.dto.LocationDTO;
 import com.example.backend.dto.UserDTO;
 import com.example.backend.entity.Role;
 import org.springframework.data.domain.Page;
@@ -21,4 +22,6 @@ public interface UserService {
     UserDTO getByEmail(String email);
 
     UserDTO updateProfile(Long userId, UserDTO dto);
+
+    UserDTO updateLocation(Long userId, LocationDTO locationDTO);
 }

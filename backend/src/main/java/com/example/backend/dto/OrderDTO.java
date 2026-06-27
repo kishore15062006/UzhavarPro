@@ -15,6 +15,12 @@ public class OrderDTO {
     private Long agentId;
     private Double totalPrice;
     private Double totalAmount;
+    private Double deliveryLat;
+    private Double deliveryLng;
+    private String deliveryAddress;
+    private String farmAddress;
+    private Double farmLat;
+    private Double farmLng;
     private OrderStatus status;
     private OrderStatus orderStatus;
     private Instant createdAt;

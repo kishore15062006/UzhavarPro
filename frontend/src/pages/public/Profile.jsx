@@ -48,7 +48,7 @@ export const PublicProfile = () => {
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input
                 label="Full Name"
@@ -61,23 +61,26 @@ export const PublicProfile = () => {
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               />
+              <Input
+                label="Phone"
+                value={formData.phone}
+                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+              />
+              <div className="hidden md:block"></div>
+              <div className="md:col-span-2">
+                <Input
+                  label="Address"
+                  value={formData.address}
+                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                />
+              </div>
             </div>
 
-            <Input
-              label="Phone"
-              value={formData.phone}
-              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-            />
-
-            <Input
-              label="Address"
-              value={formData.address}
-              onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-            />
-
-            <Button type="submit" variant="primary" loading={loading} disabled={loading}>
-              Save Changes
-            </Button>
+            <div className="flex justify-start pt-2">
+              <Button type="submit" variant="primary" loading={loading} disabled={loading}>
+                Save Changes
+              </Button>
+            </div>
           </form>
         </Card>
 

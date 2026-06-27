@@ -61,7 +61,7 @@ export const CartService = {
   getCartTotal: () => {
     const cart = Storage.getCart();
     return cart.reduce((total, item) => {
-      return total + MathUtils.calculateTotalPrice(item.price, item.quantity);
+      return total + (parseFloat(item.price) * item.quantity);
     }, 0);
   },
 

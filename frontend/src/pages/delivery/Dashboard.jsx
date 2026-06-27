@@ -3,45 +3,98 @@ import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DashboardLayout from '../../layouts/DashboardLayout.jsx';
 import { Card, Button, Badge, Skeleton, Modal, ErrorMessage } from '../../components/index.js';
+import DeliveryRouteMap from '../../components/DeliveryRouteMap.jsx';
 import useAsync from '../../hooks/useAsync.js';
 import DeliveryService from '../../services/deliveryService.js';
 import toast from 'react-hot-toast';
+import { MathUtils } from '../../utils/index.js';
 
 const DELIVERY_MENU_ITEMS = [
   { label: 'MAIN', items: [{ icon: '📦', label: 'Dashboard', path: '/delivery/dashboard' }] },
-  { label: 'ACCOUNT', items: [{ icon: '💰', label: 'Earnings', path: '/delivery/earnings' }] },
+  { label: 'ACCOUNT', items: [{ icon: '💰', label: 'Earnings', path: '/delivery/earnings' }, { icon: '👤', label: 'Profile', path: '/delivery/profile' }] },
 ];
 
 export const DeliveryDashboard = () => {
   const navigate = useNavigate();
   const [selectedDelivery, setSelectedDelivery] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [showMapModal, setShowMapModal] = useState(false);
   const [newStatus, setNewStatus] = useState('');
 
-  const { data: deliveries, isLoading, error, execute: fetchDeliveries } = useAsync(
+  const { data: deliveries, isLoading: isDeliveriesLoading, error: deliveriesError, execute: fetchDeliveries } = useAsync(
     () => DeliveryService.getMyDeliveries({ page: 0, size: 20 }),
     true
   );
+
+  const { data: upcoming, isLoading: isUpcomingLoading, error: upcomingError, execute: fetchUpcoming } = useAsync(
+    () => DeliveryService.getUpcomingDeliveries({ page: 0, size: 20 }),
+    true
+  );
+
+  const isLoading = isDeliveriesLoading || isUpcomingLoading;
+  const error = deliveriesError || upcomingError;
 
   const deliveryList = useMemo(() => {
     const deliveryPayload = deliveries?.data ?? deliveries;
     return Array.isArray(deliveryPayload) ? deliveryPayload : deliveryPayload?.content || [];
   }, [deliveries]);
 
+  const upcomingList = useMemo(() => {
+    const upcomingPayload = upcoming?.data ?? upcoming;
+    return Array.isArray(upcomingPayload) ? upcomingPayload : upcomingPayload?.content || [];
+  }, [upcoming]);
+
+  const mappedDeliveries = useMemo(() => {
+    return deliveryList.map(d => ({
+      ...d,
+      orderId: d.orderId || d.id,
+      deliveryStatus: d.deliveryStatus || d.status,
+      distance: d.farmLat && d.farmLng && d.deliveryLat && d.deliveryLng 
+        ? parseFloat(MathUtils.calculateDistance(d.farmLat, d.farmLng, d.deliveryLat, d.deliveryLng).toFixed(1))
+        : 0
+    }));
+  }, [deliveryList]);
+
+  const mappedUpcoming = useMemo(() => {
+    return upcomingList.map(d => ({
+      ...d,
+      orderId: d.orderId || d.id,
+      deliveryStatus: d.deliveryStatus || d.status,
+      distance: d.farmLat && d.farmLng && d.deliveryLat && d.deliveryLng 
+        ? parseFloat(MathUtils.calculateDistance(d.farmLat, d.farmLng, d.deliveryLat, d.deliveryLng).toFixed(1))
+        : 0
+    }));
+  }, [upcomingList]);
+
   // Calculate summary stats
   const stats = useMemo(() => {
-    const completed = deliveryList.filter(d => d.deliveryStatus === 'DELIVERED').length;
-    const inProgress = deliveryList.filter(d => d.deliveryStatus === 'OUT_FOR_DELIVERY' || d.deliveryStatus === 'PICKED').length;
-    const totalDistance = deliveryList.reduce((sum, d) => sum + (d.distance || 0), 0);
+    const completed = mappedDeliveries.filter(d => d.deliveryStatus === 'DELIVERED').length;
+    const inProgress = mappedDeliveries.filter(d => d.deliveryStatus === 'OUT_FOR_DELIVERY' || d.deliveryStatus === 'PICKED').length;
+    const totalDistance = mappedDeliveries.reduce((sum, d) => sum + (d.distance || 0), 0);
     
     return {
-      total: deliveryList.length,
+      total: mappedDeliveries.length,
       completed,
       inProgress,
       totalDistance: totalDistance.toFixed(1),
-      rate: deliveryList.length > 0 ? ((completed / deliveryList.length) * 100).toFixed(1) : 0,
+      rate: mappedDeliveries.length > 0 ? ((completed / mappedDeliveries.length) * 100).toFixed(1) : 0,
     };
-  }, [deliveryList]);
+  }, [mappedDeliveries]);
+
+  const handlePickOrder = async (orderId) => {
+    try {
+      const res = await DeliveryService.pickOrder(orderId);
+      if (res.success) {
+        toast.success('Order claimed successfully!');
+        fetchDeliveries();
+        fetchUpcoming();
+      } else {
+        toast.error(res.error?.message || 'Failed to claim order');
+      }
+    } catch (err) {
+      toast.error(err?.message || 'Error claiming order');
+    }
+  };
 
   const handleStatusUpdate = async () => {
     if (!newStatus) {
@@ -128,19 +181,19 @@ export const DeliveryDashboard = () => {
 
         <Card>
           <h2 className="text-lg font-semibold mb-4">Active Deliveries</h2>
-          {isLoading ? (
+          {isDeliveriesLoading ? (
             <div className="space-y-3">
               {[1, 2, 3].map((i) => (
                 <Skeleton key={i} count={2} />
               ))}
             </div>
-          ) : deliveryList.length === 0 ? (
+          ) : mappedDeliveries.length === 0 ? (
             <div className="text-center py-8">
               <p className="text-gray-500">No deliveries assigned yet</p>
             </div>
           ) : (
             <div className="space-y-3">
-              {deliveryList.map((delivery) => (
+              {mappedDeliveries.map((delivery) => (
                 <div key={delivery.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition">
                   <div>
                     <p className="font-semibold">Order #{delivery.orderId || 'N/A'}</p>
@@ -152,6 +205,16 @@ export const DeliveryDashboard = () => {
                     <Badge variant={getStatusVariant(delivery.deliveryStatus)}>
                       {getStatusLabel(delivery.deliveryStatus)}
                     </Badge>
+                    <Button 
+                      variant="secondary" 
+                      size="sm"
+                      onClick={() => {
+                        setSelectedDelivery(delivery);
+                        setShowMapModal(true);
+                       }}
+                    >
+                      View Route
+                    </Button>
                     <Button 
                       variant="secondary" 
                       size="sm"
@@ -169,12 +232,56 @@ export const DeliveryDashboard = () => {
           )}
         </Card>
 
+        <Card>
+          <h2 className="text-lg font-semibold mb-4">Upcoming Orders to Pick Up</h2>
+          {isUpcomingLoading ? (
+            <div className="space-y-3">
+              {[1, 2].map((i) => (
+                <Skeleton key={i} count={2} />
+              ))}
+            </div>
+          ) : mappedUpcoming.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-gray-500">No upcoming unassigned orders available</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {mappedUpcoming.map((order) => (
+                <div key={order.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition">
+                  <div>
+                    <p className="font-semibold">Order #{order.orderId || 'N/A'}</p>
+                    <p className="text-sm text-gray-600">
+                      {order.deliveryAddress || 'Address not provided'} • {order.distance || 0} km
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      Farm: {order.farmAddress || 'Address not specified'}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <Button 
+                      variant="primary" 
+                      size="sm"
+                      onClick={() => handlePickOrder(order.id)}
+                    >
+                      🚀 Pick up Order
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </Card>
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Card>
-            <h2 className="text-lg font-semibold mb-4">Delivery Route Map</h2>
-            <div className="h-64 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg flex items-center justify-center">
-              <p className="text-gray-600">🗺️ Map Integration - Coming Soon</p>
-            </div>
+            <h2 className="text-lg font-semibold mb-4">Active Route</h2>
+            {selectedDelivery ? (
+              <DeliveryRouteMap delivery={selectedDelivery} />
+            ) : (
+              <div className="h-64 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg flex items-center justify-center">
+                <p className="text-gray-600">Select a delivery to view route</p>
+              </div>
+            )}
           </Card>
 
           <Card>
@@ -254,6 +361,18 @@ export const DeliveryDashboard = () => {
             </div>
           </div>
         </div>
+      </Modal>
+
+      {/* Route Map Modal */}
+      <Modal
+        isOpen={showMapModal}
+        onClose={() => {
+          setShowMapModal(false);
+          setSelectedDelivery(null);
+        }}
+        title={`Delivery Route - Order #${selectedDelivery?.orderId}`}
+      >
+        {selectedDelivery && <DeliveryRouteMap delivery={selectedDelivery} />}
       </Modal>
     </DashboardLayout>
   );

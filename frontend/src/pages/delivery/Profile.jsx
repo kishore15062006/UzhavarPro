@@ -1,4 +1,3 @@
-// Farmer Profile Page
 import { useState, useEffect } from 'react';
 import DashboardLayout from '../../layouts/DashboardLayout.jsx';
 import { Card, Input, Button } from '../../components/index.js';
@@ -6,20 +5,18 @@ import MapLocationPicker from '../../components/MapLocationPicker.jsx';
 import useAuth from '../../hooks/useAuth.js';
 import toast from 'react-hot-toast';
 
-const FARMER_MENU_ITEMS = [
-  { label: 'MAIN', items: [{ icon: '📊', label: 'Dashboard', path: '/farmer/dashboard' }, { icon: '🛒', label: 'Products', path: '/farmer/products' }] },
-  { label: 'OPERATIONS', items: [{ icon: '📋', label: 'Orders', path: '/farmer/orders' }, { icon: '💰', label: 'Analytics', path: '/farmer/analytics' }] },
-  { label: 'ACCOUNT', items: [{ icon: '👤', label: 'Profile', path: '/farmer/profile' }] },
+const DELIVERY_MENU_ITEMS = [
+  { label: 'MAIN', items: [{ icon: '📦', label: 'Dashboard', path: '/delivery/dashboard' }] },
+  { label: 'ACCOUNT', items: [{ icon: '💰', label: 'Earnings', path: '/delivery/earnings' }, { icon: '👤', label: 'Profile', path: '/delivery/profile' }] },
 ];
 
-export const FarmerProfile = () => {
+export const DeliveryProfile = () => {
   const { user, updateProfile } = useAuth();
   const [formData, setFormData] = useState({
     name: user?.name || '',
     email: user?.email || '',
     phone: user?.phone || '',
     address: user?.address || '',
-    farmSize: user?.farmSize || '',
   });
   const [loading, setLoading] = useState(false);
 
@@ -30,7 +27,6 @@ export const FarmerProfile = () => {
         email: user.email || '',
         phone: user.phone || '',
         address: user.address || '',
-        farmSize: user.farmSize || '',
       });
     }
   }, [user]);
@@ -48,18 +44,18 @@ export const FarmerProfile = () => {
   };
 
   return (
-    <DashboardLayout menuItems={FARMER_MENU_ITEMS}>
+    <DashboardLayout menuItems={DELIVERY_MENU_ITEMS}>
       <div className="max-w-2xl space-y-6">
         <h1 className="text-3xl font-bold text-gray-900">Profile</h1>
 
         <Card>
           <div className="flex items-center gap-4 mb-6 pb-6 border-b">
-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary-400 to-secondary-400 flex items-center justify-center text-3xl">
-              👨‍🌾
+            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-400 to-indigo-400 flex items-center justify-center text-3xl">
+              🚴
             </div>
             <div>
               <h2 className="text-2xl font-bold text-gray-900">{user?.name}</h2>
-              <p className="text-gray-600">{user?.email}</p>
+              <p className="text-gray-600">{user?.email} • Delivery Agent</p>
             </div>
           </div>
 
@@ -71,21 +67,20 @@ export const FarmerProfile = () => {
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               />
               <Input
-                label="Email"
+                label="Email Address"
                 type="email"
                 value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                disabled
               />
               <Input
-                label="Phone"
+                label="Phone Number"
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
               />
               <Input
-                label="Farm Size (acres)"
-                type="number"
-                value={formData.farmSize}
-                onChange={(e) => setFormData({ ...formData, farmSize: e.target.value })}
+                label="Vehicle Type"
+                value="Motorcycle"
+                disabled
               />
               <div className="md:col-span-2">
                 <Input
@@ -105,15 +100,15 @@ export const FarmerProfile = () => {
         </Card>
 
         <Card>
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Farm Location</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">Agent Location</h2>
           <MapLocationPicker 
-            initialLat={user?.farmLat || 11.1271}
-            initialLng={user?.farmLng || 78.6569}
-            initialAddress={user?.farmAddress || ''}
-            title="Select Farm Location"
-            saveButtonText="Save Farm Location"
+            initialLat={user?.latitude || 11.1271}
+            initialLng={user?.longitude || 78.6569}
+            initialAddress={user?.address || ''}
+            title="Select Agent Location"
+            saveButtonText="Save Agent Location"
             onSave={() => {
-              toast.success('Farm location updated successfully!');
+              toast.success('Your location updated successfully!');
             }}
           />
         </Card>
@@ -122,4 +117,4 @@ export const FarmerProfile = () => {
   );
 };
 
-export default FarmerProfile;
+export default DeliveryProfile;

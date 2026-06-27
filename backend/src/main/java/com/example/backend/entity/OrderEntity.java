@@ -32,6 +32,15 @@ public class OrderEntity {
 
     private Double totalPrice;
 
+    @Column(name = "delivery_lat")
+    private Double deliveryLat;
+
+    @Column(name = "delivery_lng")
+    private Double deliveryLng;
+
+    @Column(name = "delivery_address")
+    private String deliveryAddress;
+
     @Enumerated(EnumType.STRING)
     private OrderStatus status;
 

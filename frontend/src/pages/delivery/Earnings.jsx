@@ -4,10 +4,11 @@ import DashboardLayout from '../../layouts/DashboardLayout.jsx';
 import { Card, Badge, Skeleton, Select } from '../../components/index.js';
 import useAsync from '../../hooks/useAsync.js';
 import DeliveryService from '../../services/deliveryService.js';
+import { MathUtils } from '../../utils/index.js';
 
 const DELIVERY_MENU_ITEMS = [
   { label: 'MAIN', items: [{ icon: '📦', label: 'Dashboard', path: '/delivery/dashboard' }] },
-  { label: 'ACCOUNT', items: [{ icon: '💰', label: 'Earnings', path: '/delivery/earnings' }] },
+  { label: 'ACCOUNT', items: [{ icon: '💰', label: 'Earnings', path: '/delivery/earnings' }, { icon: '👤', label: 'Profile', path: '/delivery/profile' }] },
 ];
 
 export const DeliveryEarnings = () => {
@@ -20,7 +21,15 @@ export const DeliveryEarnings = () => {
 
   const deliveryList = useMemo(() => {
     const deliveryPayload = deliveries?.data ?? deliveries;
-    return Array.isArray(deliveryPayload) ? deliveryPayload : deliveryPayload?.content || [];
+    const list = Array.isArray(deliveryPayload) ? deliveryPayload : deliveryPayload?.content || [];
+    return list.map(d => ({
+      ...d,
+      orderId: d.orderId || d.id,
+      deliveryStatus: d.deliveryStatus || d.status,
+      distance: d.farmLat && d.farmLng && d.deliveryLat && d.deliveryLng 
+        ? parseFloat(MathUtils.calculateDistance(d.farmLat, d.farmLng, d.deliveryLat, d.deliveryLng).toFixed(1))
+        : 0
+    }));
   }, [deliveries]);
 
   // Calculate earnings and stats
@@ -28,8 +37,8 @@ export const DeliveryEarnings = () => {
     const completed = deliveryList.filter(d => d.deliveryStatus === 'DELIVERED');
     const pending = deliveryList.filter(d => d.deliveryStatus !== 'DELIVERED' && d.deliveryStatus !== 'CANCELLED');
     
-// Use backend delivery earnings field or fixed rate
-    const earnings = deliveryList.reduce((sum, d) => sum + (d.earnings || 50), 0);
+    // Realized earnings are only from completed deliveries
+    const earnings = completed.reduce((sum, d) => sum + (d.earnings || 50), 0);
     const avgPerDelivery = completed.length > 0 ? earnings / completed.length : 0;
     const totalDistance = deliveryList.reduce((sum, d) => sum + (d.distance || 0), 0);
     const avgDistance = deliveryList.length > 0 ? totalDistance / deliveryList.length : 0;

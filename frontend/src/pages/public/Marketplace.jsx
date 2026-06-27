@@ -22,16 +22,24 @@ export const PublicMarketplace = () => {
   const { addToCart } = useCart();
   
   const { data: response, isLoading } = useAsync(
-    () => ProductService.getAllProducts({ page: currentPage, category: selectedCategory, search: searchTerm }),
+    () => ProductService.getAllProducts({ page: currentPage - 1, category: selectedCategory, search: searchTerm }),
     true,
     [currentPage, selectedCategory, searchTerm]
   );
 
-  const products = response?.products || [];
+  const products = response?.content || [];
   const totalPages = response?.totalPages || 1;
 
   const handleAddToCart = (product) => {
-    addToCart({ ...product, quantity: 1 });
+    addToCart({
+      id: product.id,
+      farmerId: product.farmerId,
+      name: product.name,
+      price: product.pricePerKg,
+      image: product.imageUrl,
+      quantity: 1,
+      availableQuantity: product.quantity
+    });
     toast.success(`${product.name} added to cart!`);
   };
 
@@ -79,8 +87,8 @@ export const PublicMarketplace = () => {
                   <h3 className="font-semibold text-gray-900 mb-2">{product.name}</h3>
                   <Badge variant="primary" size="sm">{product.category}</Badge>
                   <div className="mt-3 space-y-1">
-                    <p className="text-sm text-gray-600"><strong>₹{product.price}</strong>/kg</p>
-                    <p className="text-xs text-gray-500">{product.availableQuantity} kg available</p>
+                    <p className="text-sm text-gray-600"><strong>₹{product.pricePerKg}</strong>/kg</p>
+                    <p className="text-xs text-gray-500">{product.quantity} kg available</p>
                   </div>
                   <div className="mt-4 flex gap-2">
                     <Link to={`/public/product/${product.id}`} className="flex-1">

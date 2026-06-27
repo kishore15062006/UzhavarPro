@@ -5,6 +5,7 @@ import AuthProvider from './context/AuthContext.jsx';
 import AppProvider from './context/AppContext.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 import { USER_ROLES } from './constants/index.js';
+import useAuth from './hooks/useAuth.js';
 
 // Auth Pages
 import LoginPage from './pages/auth/LoginPage.jsx';
@@ -20,6 +21,8 @@ import FarmerProfile from './pages/farmer/Profile.jsx';
 // Public User Pages
 import PublicMarketplace from './pages/public/Marketplace.jsx';
 import PublicCart from './pages/public/Cart.jsx';
+import Checkout from './pages/public/Checkout.jsx';
+import OrderConfirmation from './pages/public/OrderConfirmation.jsx';
 import PublicOrders from './pages/public/Orders.jsx';
 import PublicProfile from './pages/public/Profile.jsx';
 import ProductDetail from './pages/public/ProductDetail.jsx';
@@ -34,10 +37,37 @@ import AdminAnalytics from './pages/admin/Analytics.jsx';
 // Delivery Agent Pages
 import DeliveryDashboard from './pages/delivery/Dashboard.jsx';
 import DeliveryEarnings from './pages/delivery/Earnings.jsx';
+import DeliveryProfile from './pages/delivery/Profile.jsx';
 
 // Utility Pages
 import UnauthorizedPage from './pages/UnauthorizedPage.jsx';
 import NotFoundPage from './pages/NotFoundPage.jsx';
+
+// Redirect root to appropriate page depending on role
+const RootRedirect = () => {
+  const { user, isAuthenticated, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-600"></div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  const roleRoutes = {
+    FARMER: '/farmer/dashboard',
+    PUBLIC: '/public/marketplace',
+    ADMIN: '/admin/dashboard',
+    DELIVERY_AGENT: '/delivery/dashboard',
+  };
+
+  return <Navigate to={roleRoutes[user?.role] || '/login'} replace />;
+};
 
 function App() {
   return (
@@ -46,6 +76,9 @@ function App() {
         {/* global*/}
         <AppProvider>
           <Routes>
+          {/* Root Route */}
+          <Route path="/" element={<RootRedirect />} />
+
           {/* Public Routes */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
@@ -64,6 +97,8 @@ function App() {
             <Route path="marketplace" element={<PublicMarketplace />} />
             <Route path="product/:id" element={<ProductDetail />} />
             <Route path="cart" element={<PublicCart />} />
+            <Route path="checkout" element={<Checkout />} />
+            <Route path="order-confirmation" element={<OrderConfirmation />} />
             <Route path="orders" element={<PublicOrders />} />
             <Route path="profile" element={<PublicProfile />} />
           </Route>
@@ -81,6 +116,7 @@ function App() {
           <Route path="/delivery/*" element={<ProtectedRoute requiredRoles={[USER_ROLES.DELIVERY_AGENT]} />}>
             <Route path="dashboard" element={<DeliveryDashboard />} />
             <Route path="earnings" element={<DeliveryEarnings />} />
+            <Route path="profile" element={<DeliveryProfile />} />
           </Route>
 
           {/* Error Routes */}

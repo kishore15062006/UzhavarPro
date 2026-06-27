@@ -22,6 +22,7 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
     List<OrderEntity> findByFarmer(User farmer);
     List<OrderEntity> findByBuyer(User buyer);
     Page<OrderEntity> findByDeliveryAgent(DeliveryAgent deliveryAgent, Pageable pageable);
+    Page<OrderEntity> findByStatusAndDeliveryAgentIsNull(OrderStatus status, Pageable pageable);
     long countByDeliveryAgent(DeliveryAgent deliveryAgent);
     long countByDeliveryAgentAndStatus(DeliveryAgent deliveryAgent, OrderStatus status);
     long countByDeliveryAgentAndStatusIn(DeliveryAgent deliveryAgent, List<OrderStatus> statuses);

@@ -22,8 +22,16 @@ export const AuthProvider = ({ children }) => {
           // Verify token validity
           try {
             await api.post(API_ENDPOINTS.AUTH.VERIFY_TOKEN);
-            setUser(storedUser);
             setIsAuthenticated(true);
+            try {
+              const profileResponse = await api.get(API_ENDPOINTS.USERS.GET_PROFILE);
+              const freshUser = profileResponse.data;
+              Storage.setUser(freshUser);
+              setUser(freshUser);
+            } catch (profileErr) {
+              console.warn('Could not fetch fresh profile, using stored data:', profileErr);
+              setUser(storedUser);
+            }
           } catch {
             // Token invalid, clear storage
             Storage.clearAll();
@@ -43,15 +51,8 @@ export const AuthProvider = ({ children }) => {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await api.post(API_ENDPOINTS.AUTH.REGISTER, userData);
-      const { user, token } = response.data;
-
-      Storage.setToken(token);
-      Storage.setUser(user);
-      setUser(user);
-      setIsAuthenticated(true);
-
-      return { success: true, data: user };
+      await api.post(API_ENDPOINTS.AUTH.REGISTER, userData);
+      return { success: true };
     } catch (err) {
       const errorData = handleApiError(err);
       setError(errorData.message);
@@ -123,13 +124,17 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  const updateLocation = useCallback(async (latitude, longitude) => {
+  const updateLocation = useCallback(async (lat, lng, address) => {
     try {
       const response = await api.put(API_ENDPOINTS.USERS.UPDATE_LOCATION, {
-        latitude,
-        longitude,
+        lat,
+        lng,
+        address,
       });
-      return { success: true, data: response.data };
+      const updatedUser = response.data;
+      Storage.setUser(updatedUser);
+      setUser(updatedUser);
+      return { success: true, data: updatedUser };
     } catch (err) {
       return { success: false, error: handleApiError(err) };
     }

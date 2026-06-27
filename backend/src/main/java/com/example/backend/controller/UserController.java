@@ -1,5 +1,6 @@
 package com.example.backend.controller;
 
+import com.example.backend.dto.LocationDTO;
 import com.example.backend.dto.UserDTO;
 import com.example.backend.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,6 +46,15 @@ public class UserController {
         String email = auth.getName();
         UserDTO current = userService.getByEmail(email);
         UserDTO updated = userService.updateProfile(current.getId(), dto);
+        return ResponseEntity.ok(updated);
+    }
+
+    @PutMapping("/location")
+    public ResponseEntity<UserDTO> updateLocation(@RequestBody LocationDTO dto) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String email = auth.getName();
+        UserDTO current = userService.getByEmail(email);
+        UserDTO updated = userService.updateLocation(current.getId(), dto);
         return ResponseEntity.ok(updated);
     }
 

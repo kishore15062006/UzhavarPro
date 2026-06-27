@@ -5,6 +5,7 @@ import { Card, Button, Badge, StatusBadge, Skeleton, Pagination } from '../../co
 import useAsync from '../../hooks/useAsync.js';
 import OrderService from '../../services/orderService.js';
 import { Formatters } from '../../utils/index.js';
+import toast from 'react-hot-toast';
 
 const FARMER_MENU_ITEMS = [
   {
@@ -31,14 +32,42 @@ const FARMER_MENU_ITEMS = [
 
 export const FarmerOrders = () => {
   const [currentPage, setCurrentPage] = useState(1);
-  const { data: response, isLoading } = useAsync(
-    () => OrderService.getIncomingOrders({ page: currentPage }),
+  const { data: response, isLoading, execute: fetchOrders } = useAsync(
+    () => OrderService.getIncomingOrders({ page: currentPage - 1 }),
     true,
     [currentPage]
   );
 
-  const orders = response?.orders || [];
+  const orders = response?.content || [];
   const totalPages = response?.totalPages || 1;
+
+  const handleAcceptOrder = async (orderId) => {
+    try {
+      const res = await OrderService.acceptOrder(orderId);
+      if (res.success) {
+        toast.success('Order accepted successfully!');
+        fetchOrders();
+      } else {
+        toast.error(res.error?.message || 'Failed to accept order');
+      }
+    } catch (err) {
+      toast.error('Error accepting order');
+    }
+  };
+
+  const handleRejectOrder = async (orderId) => {
+    try {
+      const res = await OrderService.rejectOrder(orderId);
+      if (res.success) {
+        toast.success('Order rejected');
+        fetchOrders();
+      } else {
+        toast.error(res.error?.message || 'Failed to reject order');
+      }
+    } catch (err) {
+      toast.error('Error rejecting order');
+    }
+  };
 
   return (
     <DashboardLayout menuItems={FARMER_MENU_ITEMS}>
@@ -72,7 +101,7 @@ export const FarmerOrders = () => {
                     </div>
                     <div>
                       <p className="text-sm text-gray-600">Customer</p>
-                      <p className="font-semibold text-gray-900">{order.customerName}</p>
+                      <p className="font-semibold text-gray-900">{order.buyerId ? `User #${order.buyerId}` : 'Customer'}</p>
                     </div>
                     <div>
                       <p className="text-sm text-gray-600">Total Amount</p>
@@ -87,8 +116,8 @@ export const FarmerOrders = () => {
                     <Button variant="secondary" size="sm">View Details</Button>
                     {order.status === 'PENDING' && (
                       <>
-                        <Button variant="primary" size="sm">✅ Accept</Button>
-                        <Button variant="danger" size="sm">❌ Reject</Button>
+                        <Button variant="primary" size="sm" onClick={() => handleAcceptOrder(order.id)}>✅ Accept</Button>
+                        <Button variant="danger" size="sm" onClick={() => handleRejectOrder(order.id)}>❌ Reject</Button>
                       </>
                     )}
                   </div>

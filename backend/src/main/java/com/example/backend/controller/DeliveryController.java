@@ -72,4 +72,22 @@ public class DeliveryController {
         Pageable pageable = PageRequest.of(page, size);
         return ResponseEntity.ok(orderService.listForDeliveryAgent(userId, pageable));
     }
+
+    @GetMapping("/upcoming")
+    @PreAuthorize("hasRole('DELIVERY_AGENT')")
+    public ResponseEntity<Page<OrderDTO>> getUpcomingDeliveries(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size);
+        return ResponseEntity.ok(orderService.listUpcomingOrders(pageable));
+    }
+
+    @PostMapping("/pick")
+    @PreAuthorize("hasRole('DELIVERY_AGENT')")
+    public ResponseEntity<OrderDTO> pickOrder(@RequestParam Long orderId) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        Long userId = userService.getByEmail(auth.getName()).getId();
+        return ResponseEntity.ok(deliveryService.pickOrder(orderId, userId));
+    }
 }

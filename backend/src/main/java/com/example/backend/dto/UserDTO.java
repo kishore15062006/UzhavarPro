@@ -17,5 +17,8 @@ public class UserDTO {
     private Double farmSize;
     private Double latitude;
     private Double longitude;
+    private Double farmLat;
+    private Double farmLng;
+    private String farmAddress;
     private Instant createdAt;
 }

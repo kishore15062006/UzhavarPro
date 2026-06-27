@@ -22,6 +22,7 @@ public interface OrderService {
     
     // Delivery methods  
     Page<OrderDTO> listForDeliveryAgent(Long deliveryUserId, Pageable pageable);
+    Page<OrderDTO> listUpcomingOrders(Pageable pageable);
     long countDeliveriesByAgent(Long agentId);
     long countCompletedDeliveriesByAgent(Long agentId);
     long countPendingDeliveriesByAgent(Long agentId);

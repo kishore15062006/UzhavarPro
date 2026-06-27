@@ -1,12 +1,13 @@
 package com.example.backend.service.impl;
 
+import com.example.backend.dto.LocationDTO;
 import com.example.backend.dto.UserDTO;
 import com.example.backend.entity.User;
 import com.example.backend.entity.Role;
-import com.example.backend.entity.OrderEntity;
+// import com.example.backend.entity.OrderEntity;
 import com.example.backend.exception.ResourceNotFoundException;
 import com.example.backend.repository.UserRepository;
-import com.example.backend.repository.OrderRepository;
+// import com.example.backend.repository.OrderRepository;
 import com.example.backend.service.UserService;
 import com.example.backend.util.MapperUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,8 +24,8 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private UserRepository userRepository;
 
-    @Autowired
-    private OrderRepository orderRepository;
+    // @Autowired
+    // private OrderRepository orderRepository;
 
     @Autowired
     private MapperUtil mapper;
@@ -89,6 +90,25 @@ public class UserServiceImpl implements UserService {
         if (dto.getPhone() != null) user.setPhone(dto.getPhone());
         if (dto.getAddress() != null) user.setAddress(dto.getAddress());
         if (dto.getFarmSize() != null) user.setFarmSize(dto.getFarmSize());
+
+        User updated = userRepository.save(user);
+        return mapper.map(updated, UserDTO.class);
+    }
+
+    @Override
+    public UserDTO updateLocation(Long userId, LocationDTO locationDTO) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        if (user.getRole() == Role.FARMER) {
+            if (locationDTO.getLat() != null) user.setFarmLat(locationDTO.getLat());
+            if (locationDTO.getLng() != null) user.setFarmLng(locationDTO.getLng());
+            if (locationDTO.getAddress() != null) user.setFarmAddress(locationDTO.getAddress());
+        } else {
+            if (locationDTO.getLat() != null) user.setLatitude(locationDTO.getLat());
+            if (locationDTO.getLng() != null) user.setLongitude(locationDTO.getLng());
+            if (locationDTO.getAddress() != null) user.setAddress(locationDTO.getAddress());
+        }
 
         User updated = userRepository.save(user);
         return mapper.map(updated, UserDTO.class);

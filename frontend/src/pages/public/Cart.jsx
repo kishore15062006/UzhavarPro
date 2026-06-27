@@ -22,8 +22,7 @@ export const PublicCart = () => {
       toast.error('Your cart is empty');
       return;
     }
-    toast.success('Proceeding to checkout...');
-    // Navigate to checkout
+    navigate('/public/checkout');
   };
 
   return (
@@ -50,7 +49,7 @@ export const PublicCart = () => {
                     </div>
                     <div className="flex-1">
                       <h3 className="font-semibold text-gray-900">{item.name}</h3>
-                      <p className="text-gray-600">₹{item.price}/kg</p>
+                      <p className="text-gray-600">₹{parseFloat(item.price).toFixed(2)}/kg</p>
                       <div className="flex items-center gap-2 mt-3">
                         <Button
                           size="sm"
@@ -73,7 +72,7 @@ export const PublicCart = () => {
                           +
                         </Button>
                         <p className="ml-auto font-semibold">
-                          ₹{(item.price * item.quantity).toFixed(2)}
+                          ₹{(parseFloat(item.price) * item.quantity).toFixed(2)}
                         </p>
                       </div>
                     </div>

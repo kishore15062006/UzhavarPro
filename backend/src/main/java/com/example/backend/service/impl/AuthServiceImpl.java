@@ -4,8 +4,10 @@ import com.example.backend.dto.AuthRequest;
 import com.example.backend.dto.AuthResponse;
 import com.example.backend.dto.UserDTO;
 import com.example.backend.entity.User;
+import com.example.backend.entity.DeliveryAgent;
 import com.example.backend.exception.InvalidRequestException;
 import com.example.backend.repository.UserRepository;
+import com.example.backend.repository.DeliveryAgentRepository;
 import com.example.backend.security.JwtUtil;
 import com.example.backend.service.AuthService;
 import com.example.backend.util.MapperUtil;
@@ -25,6 +27,9 @@ public class AuthServiceImpl implements AuthService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private DeliveryAgentRepository deliveryAgentRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -64,6 +69,15 @@ public class AuthServiceImpl implements AuthService {
 
         User u = mapper.map(userDTO, User.class);
         u.setPassword(passwordEncoder.encode(rawPassword));
-        userRepository.save(u);
+        User savedUser = userRepository.save(u);
+
+        if (savedUser.getRole() == com.example.backend.entity.Role.DELIVERY_AGENT) {
+            DeliveryAgent agent = DeliveryAgent.builder()
+                    .user(savedUser)
+                    .availability(true)
+                    .vehicleType("MOTORCYCLE")
+                    .build();
+            deliveryAgentRepository.save(agent);
+        }
     }
 }

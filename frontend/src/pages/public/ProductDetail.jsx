@@ -29,7 +29,15 @@ export const ProductDetail = () => {
 
   const handleAddToCart = () => {
     if (product) {
-      addToCart({ ...product, quantity: 1 });
+      addToCart({
+        id: product.id,
+        farmerId: product.farmerId,
+        name: product.name,
+        price: product.pricePerKg,
+        image: product.imageUrl,
+        quantity: 1,
+        availableQuantity: product.quantity
+      });
       toast.success('Added to cart!');
     }
   };
@@ -49,8 +57,8 @@ export const ProductDetail = () => {
                 <h1 className="text-3xl font-bold text-gray-900">{product.name}</h1>
                 <Badge variant="primary">{product.category}</Badge>
                 <div className="space-y-2">
-                  <p className="text-4xl font-bold text-primary-600">₹{product.price}/kg</p>
-                  <p className="text-gray-600">Available: {product.availableQuantity} kg</p>
+                  <p className="text-4xl font-bold text-primary-600">₹{product.pricePerKg}/kg</p>
+                  <p className="text-gray-600">Available: {product.quantity} kg</p>
                 </div>
                 <div className="flex gap-2">
                   <Button variant="primary" size="lg" onClick={handleAddToCart} fullWidth>

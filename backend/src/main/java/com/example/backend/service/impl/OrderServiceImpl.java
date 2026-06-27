@@ -72,6 +72,9 @@ public class OrderServiceImpl implements OrderService {
                 .buyer(buyer)
                 .farmer(farmer)
                 .totalPrice(total)
+                .deliveryLat(dto.getDeliveryLat())
+                .deliveryLng(dto.getDeliveryLng())
+                .deliveryAddress(dto.getDeliveryAddress())
                 .status(OrderStatus.PENDING)
                 .build();
 
@@ -84,12 +87,14 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public OrderDTO getById(Long id) {
         OrderEntity o = orderRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Order not found"));
         return toOrderDTO(o);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<OrderDTO> listForUser(Long userId, Pageable pageable) {
         User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found"));
         Page<OrderEntity> page = orderRepository.findByBuyer(user, pageable);
@@ -98,6 +103,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<OrderDTO> listForFarmer(Long farmerId, Pageable pageable) {
         User farmer = userRepository.findById(farmerId).orElseThrow(() -> new ResourceNotFoundException("Farmer not found"));
         Page<OrderEntity> page = orderRepository.findByFarmer(farmer, pageable);
@@ -117,6 +123,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<OrderDTO> list(Pageable pageable) {
         Page<OrderEntity> page = orderRepository.findAll(pageable);
         List<OrderDTO> list = page.getContent().stream().map(this::toOrderDTO).collect(Collectors.toList());
@@ -124,13 +131,33 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<OrderDTO> listForDeliveryAgent(Long deliveryUserId, Pageable pageable) {
         Optional<DeliveryAgent> deliveryAgent = deliveryAgentRepository.findByUserId(deliveryUserId);
         if (deliveryAgent.isEmpty()) {
-            return new PageImpl<>(List.of(), pageable, 0);
+            // Check if user exists and has DELIVERY_AGENT role, then dynamically create DeliveryAgent entity
+            User user = userRepository.findById(deliveryUserId).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+            if (user.getRole() == Role.DELIVERY_AGENT) {
+                DeliveryAgent agent = DeliveryAgent.builder()
+                        .user(user)
+                        .availability(true)
+                        .vehicleType("MOTORCYCLE")
+                        .build();
+                deliveryAgent = Optional.of(deliveryAgentRepository.save(agent));
+            } else {
+                return new PageImpl<>(List.of(), pageable, 0);
+            }
         }
 
         Page<OrderEntity> page = orderRepository.findByDeliveryAgent(deliveryAgent.get(), pageable);
+        List<OrderDTO> list = page.getContent().stream().map(this::toOrderDTO).collect(Collectors.toList());
+        return new PageImpl<>(list, pageable, page.getTotalElements());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<OrderDTO> listUpcomingOrders(Pageable pageable) {
+        Page<OrderEntity> page = orderRepository.findByStatusAndDeliveryAgentIsNull(OrderStatus.PENDING, pageable);
         List<OrderDTO> list = page.getContent().stream().map(this::toOrderDTO).collect(Collectors.toList());
         return new PageImpl<>(list, pageable, page.getTotalElements());
     }
@@ -185,13 +212,29 @@ public class OrderServiceImpl implements OrderService {
     }
 
     private OrderDTO toOrderDTO(OrderEntity order) {
-        OrderDTO dto = mapper.map(order, OrderDTO.class);
+        OrderDTO dto = new OrderDTO();
+        dto.setId(order.getId());
         dto.setBuyerId(order.getBuyer() != null ? order.getBuyer().getId() : null);
         dto.setUserId(order.getBuyer() != null ? order.getBuyer().getId() : null);
         dto.setFarmerId(order.getFarmer() != null ? order.getFarmer().getId() : null);
         dto.setAgentId(order.getDeliveryAgent() != null ? order.getDeliveryAgent().getId() : null);
+        dto.setTotalPrice(order.getTotalPrice());
         dto.setTotalAmount(order.getTotalPrice());
+        dto.setStatus(order.getStatus());
         dto.setOrderStatus(order.getStatus());
+        dto.setCreatedAt(order.getCreatedAt());
+
+        // Add farmer location info
+        if (order.getFarmer() != null) {
+            dto.setFarmLat(order.getFarmer().getFarmLat());
+            dto.setFarmLng(order.getFarmer().getFarmLng());
+            dto.setFarmAddress(order.getFarmer().getFarmAddress());
+        }
+
+        // Add delivery location info
+        dto.setDeliveryLat(order.getDeliveryLat());
+        dto.setDeliveryLng(order.getDeliveryLng());
+        dto.setDeliveryAddress(order.getDeliveryAddress());
 
         if (order.getItems() != null) {
             dto.setItems(order.getItems().stream().map(it -> {

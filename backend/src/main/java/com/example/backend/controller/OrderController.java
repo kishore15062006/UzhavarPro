@@ -39,6 +39,17 @@ public class OrderController {
         return ResponseEntity.ok(orderService.listForUser(userId, p));
     }
 
+    @GetMapping("/user/my-orders")
+    public ResponseEntity<Page<OrderDTO>> getMyOrders(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
+        // Get current authenticated user
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String email = auth.getName();
+        Long userId = userService.getByEmail(email).getId();
+
+        Pageable p = PageRequest.of(page, size);
+        return ResponseEntity.ok(orderService.listForUser(userId, p));
+    }
+
     @GetMapping("/farmer/incoming")
     @PreAuthorize("hasRole('FARMER')")
     public ResponseEntity<Page<OrderDTO>> listForFarmer(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
@@ -55,5 +66,24 @@ public class OrderController {
     @PreAuthorize("hasAnyRole('FARMER','ADMIN')")
     public ResponseEntity<OrderDTO> updateStatus(@RequestParam Long orderId, @RequestParam String status) {
         return ResponseEntity.ok(orderService.updateStatus(orderId, status));
+    }
+
+    @PutMapping("/{id}/status")
+    @PreAuthorize("hasAnyRole('FARMER','ADMIN')")
+    public ResponseEntity<OrderDTO> updateStatusByPath(@PathVariable Long id, @RequestBody java.util.Map<String, String> request) {
+        return ResponseEntity.ok(orderService.updateStatus(id, request.get("status")));
+    }
+
+    @PostMapping("/{id}/accept")
+    @PreAuthorize("hasRole('FARMER')")
+    public ResponseEntity<OrderDTO> acceptOrder(@PathVariable Long id) {
+        OrderDTO order = orderService.getById(id);
+        return ResponseEntity.ok(order);
+    }
+
+    @PostMapping("/{id}/reject")
+    @PreAuthorize("hasRole('FARMER')")
+    public ResponseEntity<OrderDTO> rejectOrder(@PathVariable Long id) {
+        return ResponseEntity.ok(orderService.updateStatus(id, "CANCELLED"));
     }
 }

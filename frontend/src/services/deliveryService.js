@@ -53,6 +53,26 @@ export const DeliveryService = {
       return { success: false, error: handleApiError(error) };
     }
   },
+
+  // Get upcoming unassigned deliveries
+  getUpcomingDeliveries: async (params = {}) => {
+    try {
+      const response = await api.get('/delivery/upcoming', { params });
+      return { success: true, data: response.data };
+    } catch (error) {
+      return { success: false, error: handleApiError(error) };
+    }
+  },
+
+  // Pick/claim an upcoming delivery
+  pickOrder: async (orderId) => {
+    try {
+      const response = await api.post(`/delivery/pick?orderId=${orderId}`);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return { success: false, error: handleApiError(error) };
+    }
+  },
 };
 
 export default DeliveryService;

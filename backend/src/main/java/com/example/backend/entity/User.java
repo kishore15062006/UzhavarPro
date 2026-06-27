@@ -34,7 +34,18 @@ public class User {
 
     private Double farmSize;
 
+    private Double latitude;
+
     private Double longitude;
+
+    @Column(name = "farm_lat")
+    private Double farmLat;
+
+    @Column(name = "farm_lng")
+    private Double farmLng;
+
+    @Column(name = "farm_address")
+    private String farmAddress;
 
     @Builder.Default
     private boolean active = true;
