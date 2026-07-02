@@ -170,7 +170,11 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public double getTotalRevenue() {
         List<OrderEntity> orders = orderRepository.findAll();
-        return orders.stream().mapToDouble(OrderEntity::getTotalPrice).sum();
+        double totalSales = orders.stream()
+                .filter(o -> o.getStatus() == OrderStatus.DELIVERED)
+                .mapToDouble(o -> o.getTotalPrice() != null ? o.getTotalPrice() : 0.0)
+                .sum();
+        return totalSales * 0.05; // 5% platform commission
     }
 
     @Override
@@ -183,7 +187,9 @@ public class OrderServiceImpl implements OrderService {
     public double getTotalSalesByFarmer(Long farmerId) {
         User farmer = userRepository.findById(farmerId).orElseThrow();
         List<OrderEntity> orders = orderRepository.findByFarmerAndStatus(farmer, OrderStatus.DELIVERED);
-        return orders.stream().mapToDouble(OrderEntity::getTotalPrice).sum();
+        return orders.stream()
+                .mapToDouble(o -> o.getTotalPrice() != null ? o.getTotalPrice() : 0.0)
+                .sum();
     }
 
     // Delivery methods - assume delivery agent updates orders or separate entity
@@ -240,6 +246,9 @@ public class OrderServiceImpl implements OrderService {
             dto.setItems(order.getItems().stream().map(it -> {
                 OrderItemDTO d = new OrderItemDTO();
                 d.setProductId(it.getProduct().getId());
+                if (it.getProduct() != null) {
+                    d.setProductName(it.getProduct().getName());
+                }
                 d.setQuantity(it.getQuantity());
                 d.setPrice(it.getPrice());
                 return d;

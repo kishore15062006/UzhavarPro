@@ -7,6 +7,8 @@ import com.example.backend.entity.Role;
 // import com.example.backend.entity.OrderEntity;
 import com.example.backend.exception.ResourceNotFoundException;
 import com.example.backend.repository.UserRepository;
+import com.example.backend.repository.DeliveryAgentRepository;
+import com.example.backend.entity.DeliveryAgent;
 // import com.example.backend.repository.OrderRepository;
 import com.example.backend.service.UserService;
 import com.example.backend.util.MapperUtil;
@@ -24,22 +26,37 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private DeliveryAgentRepository deliveryAgentRepository;
+
     // @Autowired
     // private OrderRepository orderRepository;
 
     @Autowired
     private MapperUtil mapper;
 
+    private UserDTO mapToUserDTO(User u) {
+        if (u == null) return null;
+        UserDTO dto = mapper.map(u, UserDTO.class);
+        if (u.getRole() == Role.DELIVERY_AGENT) {
+            deliveryAgentRepository.findByUserId(u.getId()).ifPresent(agent -> {
+                dto.setVehicleType(agent.getVehicleType());
+                dto.setAvailability(agent.getAvailability());
+            });
+        }
+        return dto;
+    }
+
     @Override
     public Page<UserDTO> list(Pageable pageable) {
         Page<User> page = userRepository.findAll(pageable);
-        return new PageImpl<>(page.getContent().stream().map(u -> mapper.map(u, UserDTO.class)).collect(Collectors.toList()), pageable, page.getTotalElements());
+        return new PageImpl<>(page.getContent().stream().map(this::mapToUserDTO).collect(Collectors.toList()), pageable, page.getTotalElements());
     }
 
     @Override
     public UserDTO getById(Long id) {
         User u = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User not found"));
-        return mapper.map(u, UserDTO.class);
+        return mapToUserDTO(u);
     }
 
     @Override
@@ -63,7 +80,7 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User not found"));
         user.setRole(role);
         User updated = userRepository.save(user);
-        return mapper.map(updated, UserDTO.class);
+        return mapToUserDTO(updated);
     }
 
     @Override
@@ -77,7 +94,7 @@ public class UserServiceImpl implements UserService {
     public UserDTO getByEmail(String email) {
         User u = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-        return mapper.map(u, UserDTO.class);
+        return mapToUserDTO(u);
     }
 
     @Override
@@ -88,11 +105,25 @@ public class UserServiceImpl implements UserService {
         if (dto.getName() != null) user.setName(dto.getName());
         if (dto.getEmail() != null) user.setEmail(dto.getEmail());
         if (dto.getPhone() != null) user.setPhone(dto.getPhone());
-        if (dto.getAddress() != null) user.setAddress(dto.getAddress());
+        if (dto.getAddress() != null) {
+            user.setAddress(dto.getAddress());
+            if (user.getRole() == Role.FARMER) {
+                user.setFarmAddress(dto.getAddress());
+            }
+        }
         if (dto.getFarmSize() != null) user.setFarmSize(dto.getFarmSize());
 
         User updated = userRepository.save(user);
-        return mapper.map(updated, UserDTO.class);
+
+        if (user.getRole() == Role.DELIVERY_AGENT) {
+            deliveryAgentRepository.findByUserId(userId).ifPresent(agent -> {
+                if (dto.getVehicleType() != null) agent.setVehicleType(dto.getVehicleType());
+                if (dto.getAvailability() != null) agent.setAvailability(dto.getAvailability());
+                deliveryAgentRepository.save(agent);
+            });
+        }
+
+        return mapToUserDTO(updated);
     }
 
     @Override
@@ -103,7 +134,10 @@ public class UserServiceImpl implements UserService {
         if (user.getRole() == Role.FARMER) {
             if (locationDTO.getLat() != null) user.setFarmLat(locationDTO.getLat());
             if (locationDTO.getLng() != null) user.setFarmLng(locationDTO.getLng());
-            if (locationDTO.getAddress() != null) user.setFarmAddress(locationDTO.getAddress());
+            if (locationDTO.getAddress() != null) {
+                user.setFarmAddress(locationDTO.getAddress());
+                user.setAddress(locationDTO.getAddress());
+            }
         } else {
             if (locationDTO.getLat() != null) user.setLatitude(locationDTO.getLat());
             if (locationDTO.getLng() != null) user.setLongitude(locationDTO.getLng());
@@ -111,6 +145,6 @@ public class UserServiceImpl implements UserService {
         }
 
         User updated = userRepository.save(user);
-        return mapper.map(updated, UserDTO.class);
+        return mapToUserDTO(updated);
     }
 }

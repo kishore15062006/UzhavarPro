@@ -17,6 +17,8 @@ export const DeliveryProfile = () => {
     email: user?.email || '',
     phone: user?.phone || '',
     address: user?.address || '',
+    vehicleType: user?.vehicleType || 'MOTORCYCLE',
+    availability: user?.availability !== undefined ? user.availability : true,
   });
   const [loading, setLoading] = useState(false);
 
@@ -27,6 +29,8 @@ export const DeliveryProfile = () => {
         email: user.email || '',
         phone: user.phone || '',
         address: user.address || '',
+        vehicleType: user.vehicleType || 'MOTORCYCLE',
+        availability: user.availability !== undefined ? user.availability : true,
       });
     }
   }, [user]);
@@ -77,11 +81,34 @@ export const DeliveryProfile = () => {
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
               />
-              <Input
-                label="Vehicle Type"
-                value="Motorcycle"
-                disabled
-              />
+              <div className="flex flex-col">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Vehicle Type
+                </label>
+                <select
+                  value={formData.vehicleType}
+                  onChange={(e) => setFormData({ ...formData, vehicleType: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-colors duration-200"
+                >
+                  <option value="BICYCLE">Bicycle</option>
+                  <option value="MOTORCYCLE">Motorcycle</option>
+                  <option value="CAR">Car</option>
+                  <option value="TRUCK">Truck</option>
+                </select>
+              </div>
+              <div className="flex flex-col">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Availability Status
+                </label>
+                <select
+                  value={formData.availability ? 'true' : 'false'}
+                  onChange={(e) => setFormData({ ...formData, availability: e.target.value === 'true' })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-colors duration-200"
+                >
+                  <option value="true">Available for Deliveries</option>
+                  <option value="false">Busy / Offline</option>
+                </select>
+              </div>
               <div className="md:col-span-2">
                 <Input
                   label="Address"

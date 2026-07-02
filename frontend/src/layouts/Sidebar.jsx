@@ -74,7 +74,7 @@ export const Sidebar = ({
           ))}
         </nav>
         
-        {/* Desktop Collapse Toggle Button at bottom */}
+        {/* Desktop Collapse Toggle Button at bottom
         <div className="hidden lg:block absolute bottom-4 left-0 right-0 px-4">
           <button
             onClick={() => setCollapsed(!collapsed)}
@@ -82,7 +82,7 @@ export const Sidebar = ({
           >
             {collapsed ? '📂' : '📁 Collapse'}
           </button>
-        </div>
+        </div> */}
       </div>
     </>
   );

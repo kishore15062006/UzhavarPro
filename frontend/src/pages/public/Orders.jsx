@@ -4,8 +4,10 @@ import DashboardLayout from '../../layouts/DashboardLayout.jsx';
 import { Card, StatusBadge, Button, Pagination, Skeleton, Modal } from '../../components/index.js';
 import useAsync from '../../hooks/useAsync.js';
 import OrderService from '../../services/orderService.js';
+import RatingService from '../../services/ratingService.js';
 import { Formatters } from '../../utils/index.js';
 import DeliveryRouteMap from '../../components/DeliveryRouteMap.jsx';
+import toast from 'react-hot-toast';
 
 const PUBLIC_MENU_ITEMS = [
   { label: 'MAIN', items: [{ icon: '🏠', label: 'Marketplace', path: '/public/marketplace' }, { icon: '🛒', label: 'Cart', path: '/public/cart' }] },
@@ -17,6 +19,13 @@ export const PublicOrders = () => {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showTrackModal, setShowTrackModal] = useState(false);
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+  const [feedbackOrder, setFeedbackOrder] = useState(null);
+  const [selectedProductId, setSelectedProductId] = useState('');
+  const [rating, setRating] = useState(5);
+  const [comment, setComment] = useState('');
+  const [submittingFeedback, setSubmittingFeedback] = useState(false);
+
   const { data: response, isLoading } = useAsync(() => OrderService.getMyOrders({ page: currentPage - 1 }), true, [currentPage]);
 
   const orders = response?.content || [];
@@ -30,6 +39,43 @@ export const PublicOrders = () => {
   const handleTrackOrder = (order) => {
     setSelectedOrder(order);
     setShowTrackModal(true);
+  };
+
+  const handleOpenFeedback = (order) => {
+    setFeedbackOrder(order);
+    if (order.items && order.items.length > 0) {
+      setSelectedProductId(order.items[0].productId);
+    }
+    setRating(5);
+    setComment('');
+    setShowFeedbackModal(true);
+  };
+
+  const handleSubmitFeedback = async (e) => {
+    e.preventDefault();
+    if (!selectedProductId) {
+      toast.error('Please select a product to rate');
+      return;
+    }
+    setSubmittingFeedback(true);
+    try {
+      const res = await RatingService.createRating({
+        productId: Number(selectedProductId),
+        rating,
+        comment
+      });
+      if (res.success) {
+        toast.success('Thank you for your feedback!');
+        setShowFeedbackModal(false);
+        setFeedbackOrder(null);
+      } else {
+        toast.error(res.error?.message || 'Failed to submit feedback');
+      }
+    } catch (err) {
+      toast.error('An error occurred while submitting feedback');
+    } finally {
+      setSubmittingFeedback(false);
+    }
   };
 
   return (
@@ -68,9 +114,12 @@ export const PublicOrders = () => {
                       <StatusBadge status={order.status} type="order" />
                     </div>
                   </div>
-                  <div className="flex gap-2 pt-4 border-t">
+                  <div className="flex gap-2 pt-4 border-t flex-wrap">
                     <Button variant="secondary" size="sm" onClick={() => handleViewDetails(order)}>📋 View Details</Button>
                     <Button variant="outline" size="sm" onClick={() => handleTrackOrder(order)}>📍 Track Order</Button>
+                    {order.status === 'DELIVERED' && (
+                      <Button variant="primary" size="sm" onClick={() => handleOpenFeedback(order)}>⭐ Give Feedback</Button>
+                    )}
                   </div>
                 </Card>
               ))}
@@ -205,6 +254,80 @@ export const PublicOrders = () => {
             {/* Map */}
             <DeliveryRouteMap delivery={selectedOrder} />
           </div>
+        )}
+      </Modal>
+
+      {/* Feedback Modal */}
+      <Modal
+        isOpen={showFeedbackModal}
+        onClose={() => {
+          setShowFeedbackModal(false);
+          setFeedbackOrder(null);
+        }}
+        title="Give Product Feedback"
+      >
+        {feedbackOrder && (
+          <form onSubmit={handleSubmitFeedback} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Select Product</label>
+              <select
+                value={selectedProductId}
+                onChange={(e) => setSelectedProductId(e.target.value)}
+                className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-sm bg-white text-gray-800 font-medium"
+              >
+                {feedbackOrder.items && feedbackOrder.items.map((item) => (
+                  <option key={item.productId} value={item.productId}>
+                    {item.productName || `Product #${item.productId}`}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Rating</label>
+              <div className="flex gap-2 text-3xl">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    type="button"
+                    onClick={() => setRating(star)}
+                    className="focus:outline-none transition-transform active:scale-125"
+                  >
+                    <span className={star <= rating ? 'text-yellow-500' : 'text-gray-300'}>★</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Comment</label>
+              <textarea
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                rows="4"
+                placeholder="Share your thoughts about this farm fresh produce..."
+                className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-sm text-gray-800"
+                required
+              ></textarea>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setShowFeedbackModal(false);
+                  setFeedbackOrder(null);
+                }}
+                disabled={submittingFeedback}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" variant="primary" loading={submittingFeedback} disabled={submittingFeedback}>
+                Submit Feedback
+              </Button>
+            </div>
+          </form>
         )}
       </Modal>
     </DashboardLayout>

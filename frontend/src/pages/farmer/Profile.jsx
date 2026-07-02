@@ -18,7 +18,7 @@ export const FarmerProfile = () => {
     name: user?.name || '',
     email: user?.email || '',
     phone: user?.phone || '',
-    address: user?.address || '',
+    address: user?.farmAddress || '',
     farmSize: user?.farmSize || '',
   });
   const [loading, setLoading] = useState(false);
@@ -29,7 +29,7 @@ export const FarmerProfile = () => {
         name: user.name || '',
         email: user.email || '',
         phone: user.phone || '',
-        address: user.address || '',
+        address: user.farmAddress || '',
         farmSize: user.farmSize || '',
       });
     }

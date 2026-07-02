@@ -79,7 +79,7 @@ export const AdminService = {
       const response = await api.get(
         API_ENDPOINTS.ADMIN_ANALYTICS.DASHBOARD_STATS
       );
-      return response.data;
+      return { success: true, data: response.data };
     } catch (error) {
       return { success: false, error: handleApiError(error) };
     }
@@ -91,7 +91,7 @@ export const AdminService = {
       const response = await api.get(
         API_ENDPOINTS.ADMIN_ANALYTICS.REVENUE_SUMMARY
       );
-      return response.data;
+      return { success: true, data: response.data };
     } catch (error) {
       return { success: false, error: handleApiError(error) };
     }
@@ -103,7 +103,7 @@ export const AdminService = {
       const response = await api.get(
         API_ENDPOINTS.ADMIN_ANALYTICS.USER_STATS
       );
-      return response.data;
+      return { success: true, data: response.data };
     } catch (error) {
       return { success: false, error: handleApiError(error) };
     }

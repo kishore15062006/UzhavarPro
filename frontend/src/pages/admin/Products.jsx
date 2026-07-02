@@ -79,7 +79,7 @@ export const AdminProducts = () => {
           <div className="space-y-4">
             {products.map((product) => (
               <Card key={product.id}>
-                <div className="grid grid-cols-1 md:grid-cols-6 gap-4 items-center">
+                <div className="grid grid-cols-1 md:grid-cols-7 gap-4 items-center">
                   <div>
                     <p className="text-sm text-gray-600">Product</p>
                     <p className="font-semibold">{product.name}</p>
@@ -89,16 +89,22 @@ export const AdminProducts = () => {
                     <p className="font-semibold text-sm">{product.farmerName || 'N/A'}</p>
                   </div>
                   <div>
+                    <p className="text-sm text-gray-600">Location</p>
+                    <p className="font-medium text-sm text-gray-800 truncate" title={product.farmerLocation}>
+                      {product.farmerLocation || 'N/A'}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Price per kg</p>
+                    <p className="font-semibold text-sm">₹{product.pricePerKg || 0}/kg</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Stock</p>
+                    <p className="font-semibold text-sm">{product.quantity || 0} kg</p>
+                  </div>
+                  <div>
                     <p className="text-sm text-gray-600">Category</p>
                     <Badge variant="primary" size="sm">{product.category || 'N/A'}</Badge>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Price/Stock</p>
-                    <p className="font-semibold">₹{product.price || 0} / {product.quantity || 0}kg</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Status</p>
-                    <Badge variant="success">ACTIVE</Badge>
                   </div>
                   <div className="flex gap-2">
                     <Button variant="secondary" size="sm">View</Button>

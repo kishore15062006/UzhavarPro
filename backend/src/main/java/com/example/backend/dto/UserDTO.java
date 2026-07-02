@@ -20,5 +20,7 @@ public class UserDTO {
     private Double farmLat;
     private Double farmLng;
     private String farmAddress;
+    private String vehicleType;
+    private Boolean availability;
     private Instant createdAt;
 }

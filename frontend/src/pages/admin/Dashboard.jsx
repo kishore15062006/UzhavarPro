@@ -18,7 +18,7 @@ export const AdminDashboard = () => {
   const navigate = useNavigate();
   const { dashboardRefreshKey } = useContext(AppContext);
 
-  const { data: stats, isLoading, error } = useAsync(
+  const { data: stats, isLoading, error, execute: fetchStats } = useAsync(
     () => AdminService.getDashboardStats(),
     true,
     [dashboardRefreshKey]
@@ -29,7 +29,7 @@ export const AdminDashboard = () => {
       <div className="space-y-6">
         <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
 
-        {error && <ErrorMessage error={error} />}
+        {error && <ErrorMessage error={error} onRetry={fetchStats} />}
 
         {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -96,7 +96,7 @@ export const AdminDashboard = () => {
                 <p className="font-semibold">{stats?.activeBuyers || 0}</p>
               </div>
               <div className="flex justify-between items-center p-3 bg-gray-50 rounded">
-                <p className="text-gray-700">Active Shop Owners</p>
+                <p className="text-gray-700">Active Delivery Agents</p>
                 <p className="font-semibold">{stats?.activeShops || 0}</p>
               </div>
               <div className="flex justify-between items-center p-3 bg-gray-50 rounded">

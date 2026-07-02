@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional(readOnly = true)
 public class ProductServiceImpl implements ProductService {
 
     @Autowired
@@ -31,6 +32,17 @@ public class ProductServiceImpl implements ProductService {
 
     @Autowired
     private MapperUtil mapper;
+
+    private ProductDTO mapToProductDTO(Product p) {
+        if (p == null) return null;
+        ProductDTO dto = mapper.map(p, ProductDTO.class);
+        if (p.getFarmer() != null) {
+            dto.setFarmerId(p.getFarmer().getId());
+            dto.setFarmerName(p.getFarmer().getName());
+            dto.setFarmerLocation(p.getFarmer().getFarmAddress() != null ? p.getFarmer().getFarmAddress() : p.getFarmer().getAddress());
+        }
+        return dto;
+    }
 
     @Override
     @Transactional
@@ -45,9 +57,7 @@ public class ProductServiceImpl implements ProductService {
         p.setFarmer(farmer);
         if (p.getStatus() == null) p.setStatus(ProductStatus.AVAILABLE);
         Product saved = productRepository.save(p);
-        ProductDTO out = mapper.map(saved, ProductDTO.class);
-        out.setFarmerId(saved.getFarmer().getId());
-        return out;
+        return mapToProductDTO(saved);
     }
 
     @Override
@@ -62,12 +72,11 @@ public class ProductServiceImpl implements ProductService {
         if (dto.getQuantity() != null) p.setQuantity(dto.getQuantity());
         if (dto.getStatus() != null) p.setStatus(dto.getStatus());
         Product saved = productRepository.save(p);
-        ProductDTO out = mapper.map(saved, ProductDTO.class);
-        out.setFarmerId(saved.getFarmer().getId());
-        return out;
+        return mapToProductDTO(saved);
     }
 
     @Override
+    @Transactional
     public void delete(Long id) {
         productRepository.deleteById(id);
     }
@@ -75,29 +84,19 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public ProductDTO getById(Long id) {
         Product p = productRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Product not found"));
-        ProductDTO out = mapper.map(p, ProductDTO.class);
-        out.setFarmerId(p.getFarmer().getId());
-        return out;
+        return mapToProductDTO(p);
     }
 
     @Override
     public Page<ProductDTO> list(String category, Pageable pageable) {
         Page<Product> page = (category == null || category.isBlank()) ? productRepository.findAll(pageable) : productRepository.findByCategoryContainingIgnoreCase(category, pageable);
-        return new PageImpl<>(page.getContent().stream().map(p -> {
-            ProductDTO d = mapper.map(p, ProductDTO.class);
-            d.setFarmerId(p.getFarmer().getId());
-            return d;
-        }).collect(Collectors.toList()), pageable, page.getTotalElements());
+        return new PageImpl<>(page.getContent().stream().map(this::mapToProductDTO).collect(Collectors.toList()), pageable, page.getTotalElements());
     }
 
     @Override
     public Page<ProductDTO> list(Pageable pageable) {
         Page<Product> page = productRepository.findAll(pageable);
-        return new PageImpl<>(page.getContent().stream().map(p -> {
-            ProductDTO d = mapper.map(p, ProductDTO.class);
-            d.setFarmerId(p.getFarmer().getId());
-            return d;
-        }).collect(Collectors.toList()), pageable, page.getTotalElements());
+        return new PageImpl<>(page.getContent().stream().map(this::mapToProductDTO).collect(Collectors.toList()), pageable, page.getTotalElements());
     }
 
     @Override
@@ -109,11 +108,7 @@ public class ProductServiceImpl implements ProductService {
     public Page<ProductDTO> getMyProducts(Long farmerId, Pageable pageable) {
         User farmer = userRepository.findById(farmerId).orElseThrow(() -> new ResourceNotFoundException("Farmer not found"));
         Page<Product> page = productRepository.findByFarmer(farmer, pageable);
-        return new PageImpl<>(page.getContent().stream().map(p -> {
-            ProductDTO d = mapper.map(p, ProductDTO.class);
-            d.setFarmerId(p.getFarmer().getId());
-            return d;
-        }).collect(Collectors.toList()), pageable, page.getTotalElements());
+        return new PageImpl<>(page.getContent().stream().map(this::mapToProductDTO).collect(Collectors.toList()), pageable, page.getTotalElements());
     }
 
     @Override

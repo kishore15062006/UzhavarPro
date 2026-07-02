@@ -15,6 +15,8 @@ public class ProductDTO {
     private Double quantity;
     private Double pricePerKg;
     private String imageUrl;
+    private String farmerName;
+    private String farmerLocation;
     private ProductStatus status;
     private Instant createdAt;
 }

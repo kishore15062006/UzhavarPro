@@ -121,6 +121,9 @@ public class AdminController {
             stats.put("totalOrders", orderService.countOrders());
             stats.put("totalProducts", productService.countProducts());
             stats.put("totalRevenue", orderService.getTotalRevenue());
+            stats.put("activeFarmers", userService.countByRole(Role.FARMER));
+            stats.put("activeBuyers", userService.countByRole(Role.PUBLIC));
+            stats.put("activeShops", userService.countByRole(Role.DELIVERY_AGENT));
             stats.put("success", true);
         } catch (Exception e) {
             stats.put("success", false);
