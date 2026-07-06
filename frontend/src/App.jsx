@@ -42,6 +42,7 @@ import DeliveryProfile from './pages/delivery/Profile.jsx';
 // Utility Pages
 import UnauthorizedPage from './pages/UnauthorizedPage.jsx';
 import NotFoundPage from './pages/NotFoundPage.jsx';
+import LandingPage from './pages/LandingPage.jsx';
 
 // Redirect root to appropriate page depending on role
 const RootRedirect = () => {
@@ -77,7 +78,7 @@ function App() {
         <AppProvider>
           <Routes>
           {/* Root Route */}
-          <Route path="/" element={<RootRedirect />} />
+          <Route path="/" element={<LandingPage />} />
 
           {/* Public Routes */}
           <Route path="/login" element={<LoginPage />} />
